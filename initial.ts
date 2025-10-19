@@ -9,22 +9,24 @@ const makeDoBFile = Effect.gen(function* () {
   yield* Effect.tryPromise(() => writeFile("./topsecret.txt", "", "utf8"));
 });
 
-function newDoB(fs: FileSystem.FileSystem) {
+function newDoB() {
   return Effect.gen(function* () {
+    // console.log("making new dob");
+    const fs = yield* FileSystem.FileSystem;
     const terminal = yield* Terminal.Terminal;
-    yield* terminal.display("Enter a guess: \n");
+    yield* terminal.display("Enter your DoB in a DD-MM-YYYY format \n");
     const input = yield* terminal.readLine;
     yield* fs.writeFileString(filePath, input);
     const contents = yield* fs.readFileString(filePath);
-    validateContents(fs, contents);
+    validateContents(contents);
   });
 }
 
-export function validateContents(fs: FileSystem.FileSystem, contents: string) {
+export function validateContents(contents: string) {
   return Effect.gen(function* () {
     yield* Effect.orElse(
       Effect.try(() => parse(contents, "DD-MM-YYYY")),
-      () => newDoB(fs),
+      () => newDoB(),
     );
   });
 }
@@ -40,13 +42,11 @@ const fileCheck = Effect.gen(function* () {
       Effect.flatMap((exists) =>
         exists
           ? Effect.succeed(undefined)
-          : Effect.all([makeDoBFile, newDoB(fs)]).pipe(Effect.map(() => {})),
+          : Effect.all([makeDoBFile, newDoB()]).pipe(Effect.map(() => {})),
       ),
     );
   const contents = yield* fs.readFileString(filePath);
-  yield* validateContents(fs, contents);
-
-  // console.log(isThere, contents)
+  yield* validateContents(contents);
 });
 
 export function Init() {

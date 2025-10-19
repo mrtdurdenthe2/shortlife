@@ -1,0 +1,13 @@
+import { Effect } from "effect";
+import { FileSystem } from "@effect/platform";
+import { parse } from "@formkit/tempo";
+import { filePath, validateContents } from "./initial";
+
+// const asd1 = validateContents("12-03-2023");
+
+var startDate = Date.now();
+
+// function differance(DoB: Date, Current: Date): Date { }
+console.log(`${startDate}`);
+
+console.log(parse("12-03-2023", "DD-MM-YYYY"));
