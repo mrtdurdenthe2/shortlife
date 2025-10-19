@@ -7,6 +7,7 @@ import { filePath, validateContents } from "./initial";
 
 var startDate = Date.now();
 
+const test = validateContents("12-03-2023");
 // function differance(DoB: Date, Current: Date): Date { }
 console.log(`${startDate}`);
 
