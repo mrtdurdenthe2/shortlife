@@ -3,10 +3,18 @@ import { FileSystem } from "@effect/platform";
 import { parse } from "@formkit/tempo";
 import { filePath, validateContents } from "./initial";
 
-const asd1 = validateContents("12-03-2023");
+const startDate = () => Date.now();
 
-var startDate = Date.now();
+const GetDob = Effect.gen(function* () {
+  yield* validateContents(filePath);
+  const fs = yield* FileSystem.FileSystem;
+  const dob = yield* fs.readFileString(filePath);
+  const parsed = parse(dob);
+  return parsed;
+});
 
-//const test = validateContents("12-03-2023");
-// function differance(DoB: Date, Current: Date): Date { }
-//console.log(`${startDate}`);
+const tickrate = 10;
+
+// function that get the time until you turn 25,
+// then gets the current time, and calculates the difference at every tickrate,
+// then formats this difference and displays it
