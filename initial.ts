@@ -25,7 +25,6 @@ function newDoB() {
 export function validateContents(contents: string) {
   return Effect.gen(function* () {
     yield* Effect.orElse(
-      // parse is a THUNK
       // when the contents are invalid, it throws an Error example: "error: Date (hthdtrh) does not match format (DD-MM-YYYY)"
       // yet for some reason, when the contents are valid (tested separately), it still resorts to the else
       Effect.try(() => parse(contents, "DD-MM-YYYY")),
