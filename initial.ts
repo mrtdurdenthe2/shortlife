@@ -1,40 +1,47 @@
-import { Effect } from "effect";
+import { Effect, Data } from "effect";
 import { FileSystem, Terminal } from "@effect/platform";
-import { NodeContext, NodeRuntime, NodeTerminal } from "@effect/platform-node";
 import { parse } from "@formkit/tempo";
 import { writeFile } from "node:fs/promises";
 
 export const filePath = "topsecret.txt"; // should make this into an .env
+
 const makeDoBFile = Effect.gen(function* () {
   yield* Effect.tryPromise(() => writeFile("./topsecret.txt", "", "utf8"));
 });
 
-function newDoB() {
+class MalformedDateStringError extends Data.TaggedError(
+  "MalformedDateStringError",
+)<{
+  readonly dateString: string;
+  readonly cause: unknown;
+}> {}
+
+function validateContents(contents: string) {
   return Effect.gen(function* () {
-    // console.log("making new dob");
+    const dateString = "06-06-2006";
+    const parsedDate = yield* Effect.try({
+      try: () => parse(dateString, "DD-MM-YYYY"),
+      catch: (cause) => new MalformedDateStringError({ dateString, cause }),
+    });
+
+    yield* Effect.log(parsedDate);
+  });
+}
+
+export function newDoB() {
+  return Effect.gen(function* () {
     const fs = yield* FileSystem.FileSystem;
     const terminal = yield* Terminal.Terminal;
     yield* terminal.display("Enter your DoB in a DD-MM-YYYY format \n");
     const input = yield* terminal.readLine;
     yield* fs.writeFileString(filePath, input);
     const contents = yield* fs.readFileString(filePath);
-    validateContents(contents);
-  });
-}
-
-export function validateContents(contents: string) {
-  return Effect.gen(function* () {
-    yield* Effect.orElse(
-      // when the contents are invalid, it throws an Error example: "error: Date (hthdtrh) does not match format (DD-MM-YYYY)"
-      // yet for some reason, when the contents are valid (tested separately), it still resorts to the else
-      Effect.try(() => parse(contents, "DD-MM-YYYY")),
-      () => newDoB(),
-    );
+    // validateContents(contents);
   });
 }
 
 const fileCheck = Effect.gen(function* () {
-  // gens will short circuit whenever there is an err, we will handle
+  // gens will short circuit whenever there is an err, weS will handle
   const fs = yield* FileSystem.FileSystem;
 
   // .exists() method returns a True/False when we need an Effect
@@ -50,9 +57,3 @@ const fileCheck = Effect.gen(function* () {
   const contents = yield* fs.readFileString(filePath);
   yield* validateContents(contents);
 });
-
-export function Init() {
-  NodeRuntime.runMain(fileCheck.pipe(Effect.provide(NodeContext.layer)));
-}
-
-Init();

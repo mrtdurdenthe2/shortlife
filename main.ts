@@ -1,18 +1,24 @@
 import { createCliRenderer, TextRenderable, Text } from "@opentui/core";
-import { format, parse } from "@formkit/tempo";
-import { Init } from "./initial";
+import { format } from "@formkit/tempo";
+import { NodeContext, NodeRuntime, NodeTerminal } from "@effect/platform-node";
+import { Data, Effect, Layer } from "effect";
+
 const renderer = await createCliRenderer();
 let currdate = format(new Date(), "full");
 
-// Construct/Component (VNode)
-const greeting2 = Text({
+const date1 = Text({
   content: currdate,
   fg: "#00FF00",
   position: "absolute",
   left: 10,
   top: 5,
 });
+const platform = Layer.mergeAll(NodeContext.layer, NodeTerminal.layer);
 
-renderer.root.add(greeting2);
+const main = program.pipe(
+  Effect.catchAll(() => newDoB()),
+  Effect.provide(platform), // now R = never
+);
 
-while (true) {}
+NodeRuntime.runMain(main);
+renderer.root.add(date1);
