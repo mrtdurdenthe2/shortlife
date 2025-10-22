@@ -5,18 +5,19 @@ import { writeFile } from "node:fs/promises";
 
 export const filePath = "topsecret.txt"; // should make this into an .env
 
-const makeDoBFile = Effect.gen(function* () {
-  yield* Effect.tryPromise(() => writeFile("./topsecret.txt", "", "utf8"));
-});
-
 class MalformedDateStringError extends Data.TaggedError(
+  // Credit to Maxwell Brown for this
   "MalformedDateStringError",
 )<{
   readonly dateString: string;
   readonly cause: unknown;
 }> {}
 
-function validateContents(contents: string) {
+const makeDoBFile = Effect.gen(function* () {
+  yield* Effect.tryPromise(() => writeFile("./topsecret.txt", "", "utf8"));
+});
+
+export function validateContents(contents: string) {
   return Effect.gen(function* () {
     const dateString = "06-06-2006";
     const parsedDate = yield* Effect.try({
@@ -28,19 +29,17 @@ function validateContents(contents: string) {
   });
 }
 
-export function newDoB() {
-  return Effect.gen(function* () {
-    const fs = yield* FileSystem.FileSystem;
-    const terminal = yield* Terminal.Terminal;
-    yield* terminal.display("Enter your DoB in a DD-MM-YYYY format \n");
-    const input = yield* terminal.readLine;
-    yield* fs.writeFileString(filePath, input);
-    const contents = yield* fs.readFileString(filePath);
-    // validateContents(contents);
-  });
-}
+export const newDoB = Effect.gen(function* () {
+  const fs = yield* FileSystem.FileSystem;
+  const terminal = yield* Terminal.Terminal;
+  yield* terminal.display("Enter your DoB in a DD-MM-YYYY format \n");
+  const input = yield* terminal.readLine;
+  yield* fs.writeFileString(filePath, input);
+  const contents = yield* fs.readFileString(filePath);
+  yield* validateContents(contents);
+});
 
-const fileCheck = Effect.gen(function* () {
+export const fileCheck = Effect.gen(function* () {
   // gens will short circuit whenever there is an err, weS will handle
   const fs = yield* FileSystem.FileSystem;
 
@@ -51,7 +50,7 @@ const fileCheck = Effect.gen(function* () {
       Effect.flatMap((exists) =>
         exists
           ? Effect.succeed(undefined)
-          : Effect.all([makeDoBFile, newDoB()]).pipe(Effect.map(() => {})),
+          : Effect.all([makeDoBFile, newDoB]).pipe(Effect.map(() => {})),
       ),
     );
   const contents = yield* fs.readFileString(filePath);
