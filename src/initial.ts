@@ -28,12 +28,14 @@ export function validateDateString(contents: string) {
     console.log("validateDateString");
     contents = cleanDateInput(contents);
     console.log(`cleaned input: ${contents}`)
-    yield* Effect.orElse(
+    const tryParse = yield* Effect.orElse(
       Effect.try({
-      try: () => parse(contents, "DD/MM/YYYY"),
+      try: () => console.log(parse(contents, "DD/MM/YYYY")),
       catch: (cause) => new MalformedDateStringError({ dateString: contents, cause }),
       }),
       () => newDoB)
+
+    Effect.logInfo(tryParse);
   })
 }
 
