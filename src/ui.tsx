@@ -9,10 +9,17 @@ declare namespace JSX {
 
 import { render, useTerminalDimensions } from "@opentui/react"
 
+export const countdownLabels = {
+  ms: "1ms",
+  mins: "1m",
+  hrs: "1h",
+  months: "1M",
+  years: "1Y",
+};
+
 export function App() {
   const { width: tw, height: th } = useTerminalDimensions()
-  const asciiFont = "block"; // Variable for ascii-font font style
-
+  const asciiFont = "block"; 
   // Columns: exactly half/half
   const leftW = Math.floor(tw / 2)
   const rightW = tw - leftW
@@ -21,7 +28,7 @@ export function App() {
   const lH = Math.floor(th / 3)
   const leftH1 = lH
   const leftH2 = lH
-  const leftH3 = th - leftH1 - leftH2 // absorb remainder
+  const leftH3 = th - leftH1 - leftH2 
 
   // Right column: 2 rows
   const rightH1 = Math.floor(th / 2)
@@ -39,27 +46,31 @@ export function App() {
       {/* LEFT COLUMN (3 rows) */}
       <box style={{ width: leftW, height: th, flexDirection: "column" }}>
         <box style={{ width: leftW, height: leftH1, justifyContent: "center", alignItems: "center" }}>
-          <ascii-font text="23ms" font={asciiFont} />
+          <ascii-font text={countdownLabels.ms} font={asciiFont} />
         </box>
         <box style={{ width: leftW, height: leftH2, justifyContent: "center", alignItems: "center" }}>
-          <ascii-font text="1m" font={asciiFont} />
+          <ascii-font text={countdownLabels.mins} font={asciiFont} />
         </box>
         <box style={{ width: leftW, height: leftH3, justifyContent: "center", alignItems: "center" }}>
-          <ascii-font text="3h" font={asciiFont} />
+          <ascii-font text={countdownLabels.hrs} font={asciiFont} />
         </box>
       </box>
 
       {/* RIGHT COLUMN (2 rows) */}
       <box style={{ width: rightW, height: th, flexDirection: "column" }}>
         <box style={{ width: rightW, height: rightH1, justifyContent: "center", alignItems: "center" }}>
-          <ascii-font text="3M" font={asciiFont} />
+          <ascii-font text={countdownLabels.months} font={asciiFont} />
         </box>
         <box style={{ width: rightW, height: rightH2, justifyContent: "center", alignItems: "center" }}>
-          <ascii-font text="3Y" font={asciiFont} />
+          <ascii-font text={countdownLabels.years} font={asciiFont} />
         </box>
       </box>
     </box>
   )
 }
 
-render(<App />)
+await render(<App />, {
+  // Optional renderer configuration
+  exitOnCtrlC: true,
+})
+

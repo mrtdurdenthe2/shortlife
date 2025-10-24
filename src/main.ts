@@ -1,22 +1,24 @@
 import { NodeContext, NodeRuntime, NodeTerminal } from "@effect/platform-node";
-import { Data, Effect, Layer } from "effect";
+import { Duration, Effect, Layer, Schedule } from "effect";
+import { createElement } from "react";
 
-import { fileCheck, newDoB } from "./initial";
-import { calcBirthday } from "./utils";
-
+import { fileCheck } from "./initial";
+import { calcBirthday, updateTimers } from "./utils";
+import { render } from "@opentui/react";
+import { App } from "./ui";
 const platform = Layer.mergeAll(NodeContext.layer, NodeTerminal.layer);
 
 const setup = Effect.gen(function* () {
   // check if the dob file exists if not make one
   yield* fileCheck;
-  yield* newDoB;
   yield* calcBirthday;
 });
 
-// const main = program.pipe(
-//   Effect.catchAll(() => newDoB),
-//   Effect.provide(platform), // now R = never
-// );
+const main = Effect.gen(function* () {
+  yield* setup;
+  render(createElement(App));
+  yield* Effect.repeat(updateTimers, Schedule.fixed(Duration.millis(100)));
+}).pipe(Effect.provide(platform));
 
-// NodeRuntime.runMain(main);
-// renderer.root.add(date1);
+NodeRuntime.runMain(main);
+

@@ -14,33 +14,44 @@ class MalformedDateStringError extends Data.TaggedError(
 }> {}
 
 const makeDoBFile = Effect.gen(function* () {
+  console.log("makeDoBFile");
   yield* Effect.tryPromise(() => writeFile("./topsecret.txt", "", "utf8"));
 });
 
-export function validateContents(contents: string) {
-  return Effect.gen(function* () {
-    const dateString = "06-06-2006";
-    const parsedDate = yield* Effect.try({
-      try: () => parse(dateString, "DD-MM-YYYY"),
-      catch: (cause) => new MalformedDateStringError({ dateString, cause }),
-    });
+function cleanDateInput (input: string) {
+  return input.replace(/[^0-9/-]/g, ``)
+} 
 
-    yield* Effect.log(parsedDate);
-  });
+export function validateDateString(contents: string) {
+  // make the user input a date again if the date is incorrect
+  return Effect.gen(function* () {
+    console.log("validateDateString");
+    contents = cleanDateInput(contents);
+    console.log(`cleaned input: ${contents}`)
+    yield* Effect.orElse(
+      Effect.try({
+      try: () => parse(contents, "DD/MM/YYYY"),
+      catch: (cause) => new MalformedDateStringError({ dateString: contents, cause }),
+      }),
+      () => newDoB)
+  })
 }
 
 export const newDoB = Effect.gen(function* () {
+
+  console.log("newDoB");
   const fs = yield* FileSystem.FileSystem;
   const terminal = yield* Terminal.Terminal;
-  yield* terminal.display("Enter your DoB in a DD-MM-YYYY format \n");
-  const input = yield* terminal.readLine;
+  yield* terminal.display("Enter your DoB in a YYYY-MM-DD format \n");
+  let input = yield* terminal.readLine;
+  input = cleanDateInput(input)
+  validateDateString(input)
   yield* fs.writeFileString(filePath, input);
-  const contents = yield* fs.readFileString(filePath);
-  yield* validateContents(contents);
 });
 
 export const fileCheck = Effect.gen(function* () {
-  // gens will short circuit whenever there is an err, weS will handle
+  console.log("fileCheck");
+  // gens will short circuit whenever there is an err
   const fs = yield* FileSystem.FileSystem;
 
   // .exists() method returns a True/False when we need an Effect
@@ -54,5 +65,5 @@ export const fileCheck = Effect.gen(function* () {
       ),
     );
   const contents = yield* fs.readFileString(filePath);
-  yield* validateContents(contents);
+  yield* validateDateString(contents);
 });
