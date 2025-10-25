@@ -17,7 +17,13 @@ export const countdownLabels = {
   years: "1Y",
 };
 
-export function App() {
+
+await render(<TUI />, {
+  // Optional renderer configuration
+  exitOnCtrlC: true,
+});
+
+export function TUI() {
   const { width: tw, height: th } = useTerminalDimensions();
   const asciiFont = "block";
   // Columns: exactly half/half
@@ -104,7 +110,4 @@ export function App() {
   );
 }
 
-await render(<App />, {
-  // Optional renderer configuration
-  exitOnCtrlC: true,
-});
+
