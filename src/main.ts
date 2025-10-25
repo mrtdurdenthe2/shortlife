@@ -21,4 +21,3 @@ const main = Effect.gen(function* () {
 }).pipe(Effect.provide(platform));
 
 NodeRuntime.runMain(main);
-

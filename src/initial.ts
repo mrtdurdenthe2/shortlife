@@ -18,36 +18,37 @@ const makeDoBFile = Effect.gen(function* () {
   yield* Effect.tryPromise(() => writeFile("./topsecret.txt", "", "utf8"));
 });
 
-function cleanDateInput (input: string) {
-  return input.replace(/[^0-9/-]/g, ``)
-} 
+function cleanDateInput(input: string) {
+  return input.replace(/[^0-9/-]/g, ``);
+}
 
 export function validateDateString(contents: string) {
   // make the user input a date again if the date is incorrect
   return Effect.gen(function* () {
     console.log("validateDateString");
     contents = cleanDateInput(contents);
-    console.log(`cleaned input: ${contents}`)
+    console.log(`cleaned input: ${contents}`);
     const tryParse = yield* Effect.orElse(
       Effect.try({
-      try: () => console.log(parse(contents, "DD/MM/YYYY")),
-      catch: (cause) => new MalformedDateStringError({ dateString: contents, cause }),
+        try: () => console.log(parse(contents, "DD/MM/YYYY")),
+        catch: (cause) =>
+          new MalformedDateStringError({ dateString: contents, cause }),
       }),
-      () => newDoB)
+      () => newDoB,
+    );
 
     Effect.logInfo(tryParse);
-  })
+  });
 }
 
 export const newDoB = Effect.gen(function* () {
-
   console.log("newDoB");
   const fs = yield* FileSystem.FileSystem;
   const terminal = yield* Terminal.Terminal;
   yield* terminal.display("Enter your DoB in a YYYY-MM-DD format \n");
   let input = yield* terminal.readLine;
-  input = cleanDateInput(input)
-  validateDateString(input)
+  input = cleanDateInput(input);
+  validateDateString(input);
   yield* fs.writeFileString(filePath, input);
 });
 
