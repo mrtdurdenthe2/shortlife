@@ -4,8 +4,16 @@ import { parse, addYear } from "@formkit/tempo";
 import { filePath } from "./initial";
 import { countdownLabels } from "./ui";
 
+import { createElement } from "react";
+import { TUI } from "./ui";
+import { render } from "@opentui/react";
+
+const App = createElement(TUI)
+
 export let DoB: Date = new Date();
 export let Birthday: Date = new Date();
+
+
 
 // diff in years, floor it, pass remainder/diff down to months and do the same
 // this way we get the cascading coundown effect
@@ -24,14 +32,14 @@ export const calcBirthday = Effect.gen(function* () {
 });
 
 // Days/Hours/Minutes/Seconds breakdown of time difference
-export type BreakdownDHMS = {
+export type breakdownDHMS = {
   days: number;
   hours: number;
   minutes: number;
   seconds: number;
 };
 
-export function breakdownDiffDHMS(from: Date, to: Date): BreakdownDHMS {
+export function breakdownDiffDHMS(from: Date, to: Date): breakdownDHMS {
   let start = new Date(from.getTime());
   let end = new Date(to.getTime());
   if (end.getTime() < start.getTime()) {
@@ -72,4 +80,6 @@ export const updateTimers = Effect.gen(function* () {
   countdownLabels.hrs = `${hours}H`;
   countdownLabels.mins = `${minutes}M`;
   countdownLabels.ms = `${seconds}S`;
+
+  render(App, {exitOnCtrlC: true,});
 });

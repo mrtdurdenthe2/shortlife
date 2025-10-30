@@ -1,11 +1,10 @@
 import { NodeContext, NodeRuntime, NodeTerminal } from "@effect/platform-node";
 import { Duration, Effect, Layer, Schedule } from "effect";
-import { createElement } from "react";
+
 
 import { fileCheck } from "./initial";
 import { calcBirthday, updateTimers } from "./utils";
-import { render } from "@opentui/react";
-import { TUI } from "./ui";
+
 const platform = Layer.mergeAll(NodeContext.layer, NodeTerminal.layer);
 
 const setup = Effect.gen(function* () {
@@ -16,9 +15,7 @@ const setup = Effect.gen(function* () {
 
 const main = Effect.gen(function* () {
   yield* setup;
-  let App = createElement(TUI)
-  render(App, {exitOnCtrlC: true,});
-  yield* Effect.repeat(updateTimers, Schedule.fixed(Duration.millis(5)));
+  yield* Effect.repeat(updateTimers, Schedule.spaced(Duration.millis(50)));
 }).pipe(Effect.provide(platform));
 
 NodeRuntime.runMain(main);
