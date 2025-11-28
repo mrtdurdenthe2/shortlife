@@ -1,10 +1,8 @@
-import { Effect, Data } from "effect";
+import { Effect, Data, JSONSchema } from "effect";
 import { FileSystem, Terminal } from "@effect/platform";
 import { parse } from "@formkit/tempo";
-import { writeFile } from "node:fs/promises";
-
+import { Deets } from "./cli";
 export const filePath = "topsecret.txt"; // should make this into an .env
-
 class MalformedDateStringError extends Data.TaggedError(
   // Credit to Maxwell Brown for this
   "MalformedDateStringError",
@@ -15,7 +13,7 @@ class MalformedDateStringError extends Data.TaggedError(
 
 const makeDoBFile = Effect.gen(function* () {
   console.log("makeDoBFile");
-  yield* Effect.tryPromise(() => writeFile("./topsecret.txt", "", "utf8"));
+  yield* Effect.tryPromise(() => Bun.write("secret.json", ""));
 });
 
 function cleanDateInput(input: string) {
@@ -28,16 +26,12 @@ export function validateDateString(contents: string) {
     console.log("validateDateString");
     contents = cleanDateInput(contents);
     console.log(`cleaned input: ${contents}`);
-    const tryParse = yield* Effect.orElse(
-      Effect.try({
+    yield* Effect.try({
         try: () => console.log(parse(contents, "DD/MM/YYYY")),
         catch: (cause) =>
           new MalformedDateStringError({ dateString: contents, cause }),
-      }),
-      () => newDoB,
-    );
+    });
 
-    Effect.logInfo(tryParse);
   });
 }
 
@@ -53,15 +47,12 @@ export const newDoB = Effect.gen(function* () {
 });
 
 
-export const newDoBCli = Effect.fn("newDoBCli")(function* (DoB: String) {
-  console.log("newDoB");
+export const Setup = Effect.fn("newDoBCli")(function* (DoB: string, Age: string) {
   const fs = yield* FileSystem.FileSystem;
-  const terminal = yield* Terminal.Terminal;
-  yield* terminal.display("Enter your DoB in a YYYY-MM-DD format \n");
-  let input = yield* terminal.readLine;
-  input = cleanDateInput(input);
+  let input = cleanDateInput(DoB);
   validateDateString(input);
-  yield* fs.writeFileString(filePath, input);
+  const jsonobj = JSONSchema.make(Deets)
+  yield* Effect.tryPromise(() =>Bun.write("secrets.json", JSON.stringify(jsonobj, DoB, Age)))
 });
 
 export const fileCheck = Effect.gen(function* () {
