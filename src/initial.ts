@@ -52,6 +52,18 @@ export const newDoB = Effect.gen(function* () {
   yield* fs.writeFileString(filePath, input);
 });
 
+
+export const newDoBCli = Effect.fn("newDoBCli")(function* (DoB: String) {
+  console.log("newDoB");
+  const fs = yield* FileSystem.FileSystem;
+  const terminal = yield* Terminal.Terminal;
+  yield* terminal.display("Enter your DoB in a YYYY-MM-DD format \n");
+  let input = yield* terminal.readLine;
+  input = cleanDateInput(input);
+  validateDateString(input);
+  yield* fs.writeFileString(filePath, input);
+});
+
 export const fileCheck = Effect.gen(function* () {
   console.log("fileCheck");
   // gens will short circuit whenever there is an err
