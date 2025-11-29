@@ -5,10 +5,6 @@ import { atLeast } from "@effect/cli/Options";
 import { newDoB, Setup} from "./initial";
 import { Interface } from "node:readline/promises";
 
-export const Deets = Schema.Struct({
- dob: Schema.DateFromString,
- age: Schema.String
-})
 
 // no args = view age
 // --set == set age

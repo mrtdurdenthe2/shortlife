@@ -14,7 +14,6 @@ export let DoB: Date = new Date();
 export let Birthday: Date = new Date();
 
 
-
 // diff in years, floor it, pass remainder/diff down to months and do the same
 // this way we get the cascading coundown effect
 

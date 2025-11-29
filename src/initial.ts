@@ -1,7 +1,7 @@
-import { Effect, Data, JSONSchema } from "effect";
+import { Effect, Data, JSONSchema, Schema } from "effect";
 import { FileSystem, Terminal } from "@effect/platform";
 import { parse } from "@formkit/tempo";
-import { Deets } from "./cli";
+
 export const filePath = "topsecret.txt"; // should make this into an .env
 class MalformedDateStringError extends Data.TaggedError(
   // Credit to Maxwell Brown for this
@@ -10,6 +10,13 @@ class MalformedDateStringError extends Data.TaggedError(
   readonly dateString: string;
   readonly cause: unknown;
 }> {}
+
+export const Deets = Schema.Struct({
+ DoB: Schema.DateFromString,
+ Age: Schema.NumberFromString
+})
+
+
 
 const makeDoBFile = Effect.gen(function* () {
   console.log("makeDoBFile");
@@ -49,10 +56,10 @@ export const newDoB = Effect.gen(function* () {
 
 export const Setup = Effect.fn("newDoBCli")(function* (DoB: string, Age: string) {
   const fs = yield* FileSystem.FileSystem;
-  let input = cleanDateInput(DoB);
-  validateDateString(input);
-  const jsonobj = JSONSchema.make(Deets)
-  yield* Effect.tryPromise(() =>Bun.write("secrets.json", JSON.stringify(jsonobj, DoB, Age)))
+  // validateDateString(inputs[1]);
+  const inputs = { DoB: cleanDateInput(DoB), Age: cleanDateInput(Age)}  
+  const decoded = Schema.decodeUnknown(Deets)(inputs)
+  yield* Effect.tryPromise(() =>Bun.write("secrets.json", JSON.stringify([DoB, Age], jsonobj)))
 });
 
 export const fileCheck = Effect.gen(function* () {
