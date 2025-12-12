@@ -37,8 +37,18 @@ const CSVRowSchema = Schema.transform(
   Deets,
   {
     strict: true,
-    decode: ([dob, _, age]) => ({ DoB: dob, Age: age }),
-    encode: ({ DoB, Age }) => [DoB, ",", Age] as const,
+    decode: (tuple) => {
+      // tuple is [value0, ",", value1] - extract values at even indices
+      const values = tuple.filter((_, i) => i % 2 === 0) as string[];
+      return Object.fromEntries(
+        deetsKeys.map((key, i) => [key, values[i]])
+      ) as Schema.Schema.Encoded<typeof Deets>;
+    },
+    encode: (obj) => {
+      const values = deetsKeys.map((key) => obj[key]);
+      // Interleave values with commas: [v0, ",", v1]
+      return values.flatMap((v, i) => (i === 0 ? [v] : [",", v])) as [string, ",", string];
+    },
   }
 );
 
