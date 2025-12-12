@@ -77,7 +77,7 @@ export const Setup = Effect.fn("newDoBCli")(function* (
   yield* Schema.decodeUnknown(CSVRowSchema)(rowString);
   // Write as CSV with header
   const csvContent = `${expectedHeader}\n${rowString}`;
-  yield* Effect.tryPromise(() => Bun.write("secrets.csv", csvContent));
+  yield* Effect.tryPromise(() => Bun.write(filePath, csvContent));
 });
 
 export const fileCheck = Effect.gen(function* () {

@@ -1,8 +1,8 @@
-import { Console, Duration, Effect, Schedule } from "effect";
+import { Console, Effect } from "effect";
 import { Command, Options } from "@effect/cli";
 
 import { fileCheck, Setup } from "./initial";
-import { calcBirthday, updateTimers } from "./utils";
+import { calcBirthday, startUI } from "./utils";
 
 const date = Options.text("date").pipe(Options.withAlias("d"));
 const age = Options.text("age").pipe(Options.withAlias("a"));
@@ -18,7 +18,9 @@ const run = Command.make("run", {}, () =>
   Effect.gen(function* () {
     const data = yield* fileCheck;
     yield* calcBirthday(data);
-    yield* Effect.repeat(updateTimers, Schedule.spaced(Duration.millis(50)));
+    yield* startUI;
+    // Keep the process alive
+    yield* Effect.never;
   })
 );
 

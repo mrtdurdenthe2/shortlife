@@ -7,19 +7,87 @@ declare namespace JSX {
   }
 }
 
+import { useState, useEffect } from "react";
 import { useTerminalDimensions } from "@opentui/react";
+import { addYear } from "@formkit/tempo";
 
-export const countdownLabels = {
-  ms: "1ms",
-  mins: "1m",
-  hrs: "1h",
-  months: "1M",
-  years: "1Y",
+// Shared state that can be set from outside
+export let sharedDoB: Date = new Date();
+export let sharedAge: number = 80;
+
+export function setSharedData(dob: Date, age: number) {
+  sharedDoB = dob;
+  sharedAge = age;
+}
+
+type CountdownLabels = {
+  ms: string;
+  mins: string;
+  hrs: string;
+  days: string;
+  years: string;
 };
+
+function breakdownDiffDHMS(from: Date, to: Date) {
+  let start = new Date(from.getTime());
+  let end = new Date(to.getTime());
+  if (end.getTime() < start.getTime()) {
+    const tmp = start;
+    start = end;
+    end = tmp;
+  }
+
+  let remainingMs = end.getTime() - start.getTime();
+
+  const secondMs = 1000;
+  const minuteMs = 60 * secondMs;
+  const hourMs = 60 * minuteMs;
+  const dayMs = 24 * hourMs;
+
+  const days = Math.floor(remainingMs / dayMs);
+  remainingMs -= days * dayMs;
+
+  const hours = Math.floor(remainingMs / hourMs);
+  remainingMs -= hours * hourMs;
+
+  const minutes = Math.floor(remainingMs / minuteMs);
+  remainingMs -= minutes * minuteMs;
+
+  const seconds = Math.floor(remainingMs / secondMs);
+
+  return { days, hours, minutes, seconds };
+}
 
 export function TUI() {
   const { width: tw, height: th } = useTerminalDimensions();
   const asciiFont = "block";
+  
+  const [labels, setLabels] = useState<CountdownLabels>({
+    ms: "0S",
+    mins: "0M",
+    hrs: "0H",
+    days: "0D",
+    years: "",
+  });
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const birthday = addYear(sharedDoB, sharedAge);
+      const now = new Date();
+      const { days, hours, minutes, seconds } = breakdownDiffDHMS(now, birthday);
+      
+      setLabels({
+        ms: `${seconds}S`,
+        mins: `${minutes}M`,
+        hrs: `${hours}H`,
+        days: `${days}D`,
+        years: "",
+      });
+    }, 50);
+
+    return () => clearInterval(interval);
+  }, []);
+
   // Columns: exactly half/half
   const leftW = Math.floor(tw / 2);
   const rightW = tw - leftW;
@@ -53,7 +121,7 @@ export function TUI() {
             alignItems: "center",
           }}
         >
-          <ascii-font text={countdownLabels.ms} font={asciiFont} />
+          <ascii-font text={labels.ms} font={asciiFont} />
         </box>
         <box
           style={{
@@ -63,7 +131,7 @@ export function TUI() {
             alignItems: "center",
           }}
         >
-          <ascii-font text={countdownLabels.mins} font={asciiFont} />
+          <ascii-font text={labels.mins} font={asciiFont} />
         </box>
         <box
           style={{
@@ -73,7 +141,7 @@ export function TUI() {
             alignItems: "center",
           }}
         >
-          <ascii-font text={countdownLabels.hrs} font={asciiFont} />
+          <ascii-font text={labels.hrs} font={asciiFont} />
         </box>
       </box>
 
@@ -87,7 +155,7 @@ export function TUI() {
             alignItems: "center",
           }}
         >
-          <ascii-font text={countdownLabels.months} font={asciiFont} />
+          <ascii-font text={labels.days} font={asciiFont} />
         </box>
         <box
           style={{
@@ -97,11 +165,9 @@ export function TUI() {
             alignItems: "center",
           }}
         >
-          <ascii-font text={countdownLabels.years} font={asciiFont} />
+          <ascii-font text={labels.years} font={asciiFont} />
         </box>
       </box>
     </box>
   );
 }
-
-
