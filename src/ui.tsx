@@ -7,7 +7,7 @@ declare namespace JSX {
   }
 }
 
-import { render, useTerminalDimensions } from "@opentui/react";
+import { useTerminalDimensions } from "@opentui/react";
 
 export const countdownLabels = {
   ms: "1ms",
@@ -16,12 +16,6 @@ export const countdownLabels = {
   months: "1M",
   years: "1Y",
 };
-
-
-await render(<TUI />, {
-  // Optional renderer configuration
-  exitOnCtrlC: true,
-});
 
 export function TUI() {
   const { width: tw, height: th } = useTerminalDimensions();

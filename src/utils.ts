@@ -1,7 +1,5 @@
 import { Effect } from "effect";
-import { FileSystem } from "@effect/platform";
-import { parse, addYear } from "@formkit/tempo";
-import { filePath } from "./initial";
+import { addYear } from "@formkit/tempo";
 import { countdownLabels } from "./ui";
 
 import { createElement } from "react";
@@ -12,7 +10,7 @@ const App = createElement(TUI)
 
 export let DoB: Date = new Date();
 export let Birthday: Date = new Date();
-
+export let ExpectedAge: number = 80;
 
 // diff in years, floor it, pass remainder/diff down to months and do the same
 // this way we get the cascading coundown effect
@@ -20,15 +18,13 @@ export let Birthday: Date = new Date();
 // months = Yeardiff - startYear(Yeardiff)
 // weeks = months = startMonth(motnhs)
 
-
-export const calcBirthday = Effect.gen(function* () {
-  const fs = yield* FileSystem.FileSystem;
-  const dob = yield* fs.readFileString(filePath);
-  const parsed = yield* Effect.try(() => parse(dob, "DD/MM/YYYY"));
-  DoB = parsed;
-  Birthday = addYear(DoB, 25);
-  return DoB;
-});
+export const calcBirthday = (data: { DoB: Date; Age: number }) =>
+  Effect.sync(() => {
+    DoB = data.DoB;
+    ExpectedAge = data.Age;
+    Birthday = addYear(DoB, ExpectedAge);
+    return DoB;
+  });
 
 // Days/Hours/Minutes/Seconds breakdown of time difference
 export type breakdownDHMS = {

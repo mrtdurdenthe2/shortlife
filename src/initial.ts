@@ -1,8 +1,8 @@
-import { Effect, Data, JSONSchema, Schema } from "effect";
-import { FileSystem, Terminal } from "@effect/platform";
+import { Effect, Data, Schema } from "effect";
+import { FileSystem } from "@effect/platform";
 import { parse } from "@formkit/tempo";
+export const filePath = "secrets.csv";
 
-export const filePath = "topsecret.txt"; // should make this into an .env
 class MalformedDateStringError extends Data.TaggedError(
   // Credit to Maxwell Brown for this
   "MalformedDateStringError",
@@ -12,16 +12,41 @@ class MalformedDateStringError extends Data.TaggedError(
 }> {}
 
 export const Deets = Schema.Struct({
- DoB: Schema.DateFromString,
- Age: Schema.NumberFromString
+  DoB: Schema.DateFromString,
+  Age: Schema.NumberFromString,
+}); 
+
+// Extract keys from Deets schema programmatically
+const deetsKeys = Object.keys(Deets.fields) as (keyof typeof Deets.fields)[];
+const expectedHeader = deetsKeys.join(",");
+
+// Schema to validate CSV header matches Deets keys
+const CSVHeaderSchema = Schema.String.pipe(
+  Schema.filter((header) => header === expectedHeader, {
+    message: () => `Header must be "${expectedHeader}"`,
+  })
+);
+
+// Schema to parse and validate a single CSV data row
+const CSVRowSchema = Schema.transform(
+  Schema.TemplateLiteralParser(
+    Schema.String,
+    Schema.Literal(","),
+    Schema.String
+  ),
+  Deets,
+  {
+    strict: true,
+    decode: ([dob, _, age]) => ({ DoB: dob, Age: age }),
+    encode: ({ DoB, Age }) => [DoB, ",", Age] as const,
+  }
+);
+
+// Combined CSV Schema for full file validation
+const CSVSchema = Schema.Struct({
+  header: CSVHeaderSchema,
+  rows: Schema.Array(CSVRowSchema),
 })
-
-
-
-const makeDoBFile = Effect.gen(function* () {
-  console.log("makeDoBFile");
-  yield* Effect.tryPromise(() => Bun.write("secret.json", ""));
-});
 
 function cleanDateInput(input: string) {
   return input.replace(/[^0-9/-]/g, ``);
@@ -34,49 +59,41 @@ export function validateDateString(contents: string) {
     contents = cleanDateInput(contents);
     console.log(`cleaned input: ${contents}`);
     yield* Effect.try({
-        try: () => console.log(parse(contents, "DD/MM/YYYY")),
-        catch: (cause) =>
-          new MalformedDateStringError({ dateString: contents, cause }),
+      try: () => console.log(parse(contents, "DD/MM/YYYY")),
+      catch: (cause) =>
+        new MalformedDateStringError({ dateString: contents, cause }),
     });
-
   });
 }
 
-export const newDoB = Effect.gen(function* () {
-  console.log("newDoB");
+export const Setup = Effect.fn("newDoBCli")(function* (
+  DoB: string,
+  Age: string,
+) {
   const fs = yield* FileSystem.FileSystem;
-  const terminal = yield* Terminal.Terminal;
-  yield* terminal.display("Enter your DoB in a YYYY-MM-DD format \n");
-  let input = yield* terminal.readLine;
-  input = cleanDateInput(input);
-  validateDateString(input);
-  yield* fs.writeFileString(filePath, input);
-});
-
-
-export const Setup = Effect.fn("newDoBCli")(function* (DoB: string, Age: string) {
-  const fs = yield* FileSystem.FileSystem;
-  // validateDateString(inputs[1]);
-  const inputs = { DoB: cleanDateInput(DoB), Age: cleanDateInput(Age)}  
-  const decoded = Schema.decodeUnknown(Deets)(inputs)
-  yield* Effect.tryPromise(() =>Bun.write("secrets.json", JSON.stringify([DoB, Age], jsonobj)))
+  // Build CSV row string from inputs
+  const rowString = `${cleanDateInput(DoB)},${cleanDateInput(Age)}`;
+  // Validate using CSVRowSchema
+  yield* Schema.decodeUnknown(CSVRowSchema)(rowString);
+  // Write as CSV with header
+  const csvContent = `${expectedHeader}\n${rowString}`;
+  yield* Effect.tryPromise(() => Bun.write("secrets.csv", csvContent));
 });
 
 export const fileCheck = Effect.gen(function* () {
-  console.log("fileCheck");
-  // gens will short circuit whenever there is an err
   const fs = yield* FileSystem.FileSystem;
-
-  // .exists() method returns a True/False when we need an Effect
-  yield* fs
-    .exists(filePath)
-    .pipe(
-      Effect.flatMap((exists) =>
-        exists
-          ? Effect.succeed(undefined)
-          : Effect.all([makeDoBFile, newDoB]).pipe(Effect.map(() => {})),
-      ),
-    );
+  const exists = yield* fs.exists(filePath);
+  if (!exists) {
+    yield* Effect.fail(new Error(`Config file not found. Run 'shortlife setup -d "YYYY-MM-DD" -a "age"' first.`));
+  }
   const contents = yield* fs.readFileString(filePath);
-  yield* validateDateString(contents);
+  const lines = contents.trim().split("\n");
+  
+  // Validate header
+  yield* Schema.decodeUnknown(CSVHeaderSchema)(lines[0]);
+  
+  // Validate and parse data row using CSVRowSchema
+  const data = yield* Schema.decodeUnknown(CSVRowSchema)(lines[1]);
+  
+  return data;
 });

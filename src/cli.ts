@@ -1,25 +1,32 @@
-import { Effect, Console, Schema} from "effect";
-import { Args, Command, Options } from "@effect/cli";
-import { BunContext, BunRuntime } from "@effect/platform-bun";
-import { atLeast } from "@effect/cli/Options";
-import { newDoB, Setup} from "./initial";
-import { Interface } from "node:readline/promises";
+import { Console, Duration, Effect, Schedule } from "effect";
+import { Command, Options } from "@effect/cli";
 
+import { fileCheck, Setup } from "./initial";
+import { calcBirthday, updateTimers } from "./utils";
 
-// no args = view age
-// --set == set age
-// --bd == set birthday
-//
-// > shortlife
-// Your current set birthday is {}
+const date = Options.text("date").pipe(Options.withAlias("d"));
+const age = Options.text("age").pipe(Options.withAlias("a"));
 
+const setup = Command.make("setup", { date, age }, ({ date, age }) =>
+  Effect.gen(function* () {
+    yield* Setup(date, age);
+    yield* Console.log("Setup complete! Run 'shortlife run' to start the timer.");
+  })
+);
 
-const Idate = Options.text("date").pipe(Options.withAlias("d"))
+const run = Command.make("run", {}, () =>
+  Effect.gen(function* () {
+    const data = yield* fileCheck;
+    yield* calcBirthday(data);
+    yield* Effect.repeat(updateTimers, Schedule.spaced(Duration.millis(50)));
+  })
+);
 
-const Iage = Options.text("age").pipe(Options.withAlias("a"))
+const app = Command.make("shortlife").pipe(
+  Command.withSubcommands([setup, run])
+);
 
-const setup = Command.make("date", { Idate, Iage}, ({ Idate, Iage }) =>
- Effect.all([Setup(Idate, Iage)])
-); 
-
-
+export const cli = Command.run(app, {
+  name: "shortlife",
+  version: "1.0.0",
+});
