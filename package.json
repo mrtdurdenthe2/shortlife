@@ -1,0 +1,32 @@
+{
+  "name": "shortlife",
+  "version": "1.0.0",
+  "description": "A memento mori clock for your terminal",
+  "type": "module",
+  "bin": {
+    "shortlife": "./src/main.ts"
+  },
+  "files": [
+    "src"
+  ],
+  "scripts": {
+    "start": "bun run src/main.ts"
+  },
+  "keywords": ["cli", "memento-mori", "timer", "terminal"],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@effect/cli": "^0.48.0",
+    "@effect/platform": "^0.68.0",
+    "@effect/platform-bun": "^0.48.0",
+    "@opentui/react": "^1.5.0",
+    "effect": "^3.10.0"
+  },
+  "devDependencies": {
+    "bun-types": "^1.1.0",
+    "typescript": "^5.0.0"
+  }
+}
+

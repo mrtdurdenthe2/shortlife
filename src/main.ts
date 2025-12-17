@@ -1,3 +1,4 @@
+#!/usr/bin/env bun
 import { BunContext, BunRuntime, BunTerminal } from "@effect/platform-bun";
 import { BunFileSystem } from "@effect/platform-bun";
 import { Effect, Layer } from "effect";
