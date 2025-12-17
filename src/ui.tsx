@@ -7,7 +7,7 @@ declare namespace JSX {
   }
 }
 
-import { useState, useEffect } from "react";
+import { Atom, useAtomValue } from "@effect-atom/atom-react";
 import { useTerminalDimensions } from "@opentui/react";
 import { addYear } from "@formkit/tempo";
 
@@ -28,23 +28,29 @@ function calcDecimalYears(from: Date, to: Date): number {
   return diffMs / YEAR_MS;
 }
 
+// Atom that emits the countdown value, updating every 50ms
+const countdownAtom: Atom.Atom<string> = Atom.make((get) => {
+  const update = () => {
+    const birthday = addYear(sharedDoB, sharedAge);
+    const now = new Date();
+    const years = calcDecimalYears(now, birthday);
+    get.setSelf(years.toFixed(8));
+  };
+
+  const interval = setInterval(update, 50);
+  get.addFinalizer(() => clearInterval(interval));
+
+  // Return initial value
+  const birthday = addYear(sharedDoB, sharedAge);
+  const now = new Date();
+  return calcDecimalYears(now, birthday).toFixed(8);
+});
+
 export function TUI() {
   const { width: tw, height: th } = useTerminalDimensions();
   const asciiFont = "block";
   
-  const [yearsLabel, setYearsLabel] = useState("0.00000000");
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const birthday = addYear(sharedDoB, sharedAge);
-      const now = new Date();
-      const years = calcDecimalYears(now, birthday);
-      
-      setYearsLabel(years.toFixed(8));
-    }, 50);
-
-    return () => clearInterval(interval);
-  }, []);
+  const yearsLabel = useAtomValue(countdownAtom);
 
   return (
     <box
