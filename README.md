@@ -1,3 +1,3 @@
 Not finished :p
 
-[screenshot.png]
+![Screenshot of the countdown timer](,/screenshot.png)
