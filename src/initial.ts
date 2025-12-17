@@ -1,7 +1,11 @@
 import { Effect, Data, Schema } from "effect";
 import { FileSystem } from "@effect/platform";
 import { parse } from "@formkit/tempo";
-export const filePath = "secrets.csv";
+import { homedir } from "os";
+import { join } from "path";
+
+const CONFIG_DIR = join(homedir(), ".shortlife");
+export const filePath = join(CONFIG_DIR, "secrets.csv");
 
 class MalformedDateStringError extends Data.TaggedError(
   // Credit to Maxwell Brown for this
@@ -81,13 +85,15 @@ export const Setup = Effect.fn("newDoBCli")(function* (
   Age: string,
 ) {
   const fs = yield* FileSystem.FileSystem;
+  // Ensure config directory exists
+  yield* fs.makeDirectory(CONFIG_DIR, { recursive: true });
   // Build CSV row string from inputs
   const rowString = `${cleanDateInput(DoB)},${cleanDateInput(Age)}`;
   // Validate using CSVRowSchema
   yield* Schema.decodeUnknown(CSVRowSchema)(rowString);
   // Write as CSV with header
   const csvContent = `${expectedHeader}\n${rowString}`;
-  yield* Effect.tryPromise(() => Bun.write(filePath, csvContent));
+  yield* fs.writeFileString(filePath, csvContent);
 });
 
 export const fileCheck = Effect.gen(function* () {
