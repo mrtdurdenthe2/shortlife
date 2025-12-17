@@ -1,6 +1,6 @@
 {
   "name": "@kaiwlsn/shortlife",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A memento mori clock for your terminal",
   "type": "module",
   "bin": {
@@ -15,12 +15,13 @@
   "keywords": ["cli", "memento-mori", "timer", "terminal"],
   "license": "MIT",
   "dependencies": {
+    "@effect-atom/atom-react": "^0.4.4",
     "@effect/cli": "^0.72.1",
     "@effect/platform": "^0.93.8",
     "@effect/platform-bun": "^0.86.0",
-    "@effect-atom/atom-react": "^0.4.4",
-    "@opentui/react": "^0.1.61",
     "@formkit/tempo": "^0.1.2",
+    "@opentui/core": "^0.1.61",
+    "@opentui/react": "^0.1.61",
     "effect": "^3.19.12"
   },
   "devDependencies": {

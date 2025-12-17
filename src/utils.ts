@@ -1,7 +1,8 @@
 import { Effect } from "effect";
 import { createElement } from "react";
 import { TUI, setSharedData } from "./ui";
-import { render } from "@opentui/react";
+import { createRoot } from "@opentui/react";
+import { createCliRenderer } from "@opentui/core";
 
 const App = createElement(TUI);
 
@@ -11,6 +12,8 @@ export const calcBirthday = (data: { DoB: Date; Age: number }) =>
     return data.DoB;
   });
 
-export const startUI = Effect.sync(() => {
-  render(App, { exitOnCtrlC: true });
+export const startUI = Effect.tryPromise(async () => {
+  const renderer = await createCliRenderer();
+  const root = createRoot(renderer);
+  root.render(App);
 });
