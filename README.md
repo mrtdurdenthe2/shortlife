@@ -9,7 +9,7 @@ A memento mori clock for your terminal.
 Requires [Bun](https://bun.sh)
 
 ```bash
-npm install -g shortlife
+npm install -g @kaiwlsn/shortlife
 ```
 
 ## Usage
