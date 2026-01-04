@@ -1,5 +1,12 @@
 {
   "compilerOptions": {
+     "plugins": [
+      // ... other LSPs (if any) and as last
+      {
+        "name": "@effect/language-service",
+"diagnosticSeverity": {}
+      }
+    ],   
     "lib": [
       "ESNext",
       "DOM"

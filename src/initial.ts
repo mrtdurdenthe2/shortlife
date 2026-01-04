@@ -15,6 +15,13 @@ class MalformedDateStringError extends Data.TaggedError(
   readonly cause: unknown;
 }> {}
 
+class ConfigFileNotFoundError extends Data.TaggedError(
+  "ConfigFileNotFoundError",
+)<{
+  readonly path: string;
+  readonly message: string;
+}> {}
+
 export const Deets = Schema.Struct({
   DoB: Schema.DateFromString,
   Age: Schema.NumberFromString,
@@ -100,7 +107,10 @@ export const fileCheck = Effect.gen(function* () {
   const fs = yield* FileSystem.FileSystem;
   const exists = yield* fs.exists(filePath);
   if (!exists) {
-    yield* Effect.fail(new Error(`Config file not found. Run 'shortlife setup -d "YYYY-MM-DD" -a "age"' first.`));
+    return yield* new ConfigFileNotFoundError({
+      path: filePath,
+      message: `Config file not found. Run 'shortlife setup -d "YYYY-MM-DD" -a "age"' first.`,
+    });
   }
   const contents = yield* fs.readFileString(filePath);
   const lines = contents.trim().split("\n");

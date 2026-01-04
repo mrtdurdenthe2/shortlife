@@ -20,7 +20,7 @@ const run = Command.make("run", {}, () =>
     yield* calcBirthday(data);
     yield* startUI;
     // Keep the process alive
-    yield* Effect.never;
+    return yield* Effect.never;
   })
 );
 

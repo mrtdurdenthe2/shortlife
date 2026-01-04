@@ -10,7 +10,8 @@
     "src"
   ],
   "scripts": {
-    "start": "bun run src/main.ts"
+    "start": "bun run src/main.ts",
+"prepare": "effect-language-service patch"
   },
   "keywords": [
     "cli",
@@ -27,10 +28,12 @@
     "@formkit/tempo": "^0.1.2",
     "@opentui/core": "^0.1.61",
     "@opentui/react": "^0.1.61",
-    "effect": "^3.19.14"
+    "effect": "^3.19.14",
+    "react": "^19.2.3"
   },
   "devDependencies": {
     "@effect/language-service": "^0.64.0",
+    "@types/react": "^19.2.7",
     "bun-types": "^1.3.4",
     "typescript": "^5.9.3"
   }
