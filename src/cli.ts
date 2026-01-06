@@ -30,5 +30,5 @@ const app = Command.make("shortlife").pipe(
 
 export const cli = Command.run(app, {
   name: "shortlife",
-  version: "1.0.0",
+  version: "1.0.2",
 });
