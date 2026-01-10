@@ -1,4 +1,4 @@
-# shortlife
+a:# shortlife
 
 A memento mori clock for your terminal.
 
